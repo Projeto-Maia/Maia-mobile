@@ -22,3 +22,8 @@ export interface Location {
   latitude: number;
   longitude: number;
 }
+
+export interface QuizAnswer {
+  questionId: number;
+  selectedOptionId: string;
+}

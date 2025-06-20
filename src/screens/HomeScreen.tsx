@@ -1,105 +1,64 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } from "react-native";
-import axios from "axios";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { QuizQuestion } from "../types";
 import { colors } from "../theme/colors";
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 type Props = {
-  navigation: HomeScreenNavigationProp;
+  navigation: StackNavigationProp<RootStackParamList, "Home">;
 };
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
-
-  useEffect(() => {
-    axios
-      .get<QuizQuestion[]>("https://maia-back-production.up.railway.app/quiz")
-      .then((response) => {
-        setQuiz(response.data);
-      })
-      .catch((error) => console.error("Erro ao buscar o quiz!", error));
-  }, []);
-
-  const renderItem = ({ item }: { item: QuizQuestion }) => (
-    <View style={styles.card}>
-      <Text style={styles.questionText}>{item.questionText}</Text>
-    </View>
-  );
-
   return (
-    // SafeAreaView garante que o conteúdo não fique sob a status bar/notch
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={styles.container}>
-        <Text style={styles.title}>Quiz Educativo</Text>
-        <Text style={styles.subtitle}>Responda e aprenda a identificar os sinais de um relacionamento abusivo.</Text>
-
-        <TouchableOpacity style={styles.mapButton} onPress={() => navigation.navigate("Map")}>
-          <Text style={styles.mapButtonText}>Ver Mapa de Apoio no DF</Text>
+        {/* Adicionar a logo quando estiver pronta */}
+        {/* <Image source={require('../assets/maia-logo.png')} style={styles.logo} /> */}
+        <Text style={styles.title}>Bem-vinda à Maia</Text>
+        <Text style={styles.subtitle}>
+          Um espaço seguro para você aprender a identificar sinais de um relacionamento abusivo e encontrar caminhos
+          para o apoio e a segurança.
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Quiz")}>
+          <Text style={styles.buttonText}>Iniciar Quiz Educativo</Text>
         </TouchableOpacity>
-
-        <FlatList data={quiz} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} style={styles.list} />
       </View>
     </SafeAreaView>
   );
 };
 
-// Folha de estilos usando as cores do tema
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  safeArea: { flex: 1, backgroundColor: colors.background },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     color: colors.headline,
-    marginBottom: 8,
+    textAlign: "center",
+    marginBottom: 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: colors.paragraph,
-    marginBottom: 24,
+    textAlign: "center",
+    lineHeight: 26,
+    marginBottom: 40,
   },
-  mapButton: {
+  button: {
     backgroundColor: colors.button,
-    paddingVertical: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 40,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
   },
-  mapButtonText: {
+  buttonText: {
     color: colors.buttonText,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-  },
-  list: {
-    flex: 1,
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  questionText: {
-    fontSize: 16,
-    color: colors.paragraph,
-    lineHeight: 24,
   },
 });
 
