@@ -3,13 +3,13 @@ import 'dotenv/config'; // Carrega as variáveis do arquivo .env
 export default {
   expo: {
     name: 'Maia',
-    slug: 'maia-mobile-app',
+    slug: 'Maia',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/ic_launcher.png',
     userInterfaceStyle: 'light',
     splash: {
-      image: './assets/splash.png',
+      image: './assets/logo_plum.png',
       resizeMode: 'contain',
       backgroundColor: '#FEF9FA'
     },
