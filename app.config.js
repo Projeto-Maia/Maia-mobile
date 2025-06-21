@@ -1,4 +1,4 @@
-import 'dotenv/config'; // Carrega as variáveis do arquivo .env
+import 'dotenv/config';
 
 export default {
   expo: {
@@ -8,20 +8,23 @@ export default {
     orientation: 'portrait',
     icon: './assets/ic_launcher.png',
     userInterfaceStyle: 'light',
+    newArchEnabled: true,
+    owner: 'artmdx',
+    plugins: ['expo-font'],
     splash: {
       image: './assets/logo_plum.png',
       resizeMode: 'contain',
-      backgroundColor: '#FEF9FA'
+      backgroundColor: '#FCD1D3'
     },
-    plugins: ['expo-font'],
     ios: {
       supportsTablet: true
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#F5C6D6'
+        foregroundImage: './assets/adaptative-icon.png',
+        backgroundColor: '#FCD1D3'
       },
+      edgeToEdgeEnabled: true,
       package: 'com.artmdx.Maia',
       config: {
         googleMaps: {
@@ -30,7 +33,7 @@ export default {
       }
     },
     web: {
-      favicon: './assets/favicon.png'
+      favicon: './assets/favicon_plum.png'
     },
     extra: {
       eas: {
