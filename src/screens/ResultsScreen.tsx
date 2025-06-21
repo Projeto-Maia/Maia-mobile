@@ -1,78 +1,120 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RouteProp, useRoute } from "@react-navigation/native";
-import { RootStackParamList } from "../navigation/AppNavigator";
-import { colors } from "../theme/colors";
-
-// Tipagem para as props de navegação e rota
-type ResultsScreenNavigationProp = StackNavigationProp<RootStackParamList, "Results">;
-type ResultsScreenRouteProp = RouteProp<RootStackParamList, "Results">;
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, ActivityIndicator } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { QuizQuestion, QuizAnswer } from '../types';
+import ResultCard from '../components/ResultCard';
+import { ApiService } from '../services/ApiService';
+import { colors } from '../theme/colors';
+import { typography } from '../theme/typography';
 
 type Props = {
-  navigation: ResultsScreenNavigationProp;
+  navigation: StackNavigationProp<RootStackParamList, 'Results'>;
 };
 
 const ResultsScreen: React.FC<Props> = ({ navigation }) => {
-  const route = useRoute<ResultsScreenRouteProp>();
-  const { answers } = route.params;
+  const route = useRoute<RouteProp<RootStackParamList, 'Results'>>();
+  const { answers: userAnswers } = route.params;
 
-  // Lógica para verificar se alguma red flag foi selecionada
-  // Esta lógica precisa do array de perguntas completo. Para o hackathon,
-  // poderíamos passá-lo via navegação ou buscá-lo novamente.
-  // Por simplicidade, vamos assumir que a API retorna um campo 'redFlag' na opção selecionada.
-  // A lógica real precisaria cruzar as respostas com os dados das perguntas.
-  const hasRedFlags = useMemo(() => {
-    // Esta é uma SIMPLIFICAÇÃO. A lógica real precisa dos dados das perguntas.
-    // Se você tiver os dados completos das perguntas, pode fazer:
-    // return answers.some(answer => {
-    //   const question = allQuestions.find(q => q.id === answer.questionId);
-    //   const option = question?.options.find(o => o.id === answer.selectedOptionId);
-    //   return option?.redFlag === true;
-    // });
-    return true; // Vamos forçar a mensagem de alerta para a demo
-  }, [answers]);
+  const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedQuestionId, setExpandedQuestionId] = useState<number | null>(null);
+
+  useEffect(() => {
+    ApiService.getQuestions().then(data => {
+      setAllQuestions(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const handleToggleExpand = (questionId: number) => {
+    setExpandedQuestionId(prevId => (prevId === questionId ? null : questionId));
+  };
+
+  // Combina as perguntas com as respostas do usuário para facilitar a renderização
+  const resultsData = allQuestions.map(q => ({
+    question: q,
+    userAnswer: userAnswers.find(a => a.questionId === q.id)!
+  }));
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Quiz Finalizado</Text>
-        <Text style={styles.subtitle}>
-          {hasRedFlags
-            ? "Obrigada por sua confiança. Notamos que algumas de suas respostas indicam situações de risco que merecem atenção, considere buscar apoio profissional."
-            : "Obrigada por refletir sobre sua segurança. Conhecimento é o primeiro passo para a proteção!"}
-        </Text>
-        <Text style={styles.recommendation}>
-          Lembre-se: você não está sozinha. Ajuda profissional, gratuita e confidencial está disponível.
-        </Text>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Map")}>
-          <Text style={styles.buttonText}>Encontrar Locais de Apoio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={() => navigation.popToTop()}>
-          <Text style={[styles.buttonText, styles.secondaryButtonText]}>Voltar ao Início</Text>
-        </TouchableOpacity>
-      </View>
+      <FlatList
+        data={resultsData}
+        keyExtractor={item => item.question.id.toString()}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.title}>Resultado</Text>
+            <Text style={styles.subtitle}>
+              O Quiz Maia é uma forma interativa e educativa de passar informações sem a intenção de diagnóstico ou
+              pânico.
+            </Text>
+          </>
+        }
+        renderItem={({ item }) => (
+          <ResultCard
+            question={item.question}
+            userAnswer={item.userAnswer}
+            isExpanded={expandedQuestionId === item.question.id}
+            onPress={() => handleToggleExpand(item.question.id)}
+          />
+        )}
+        ListFooterComponent={
+          <View style={styles.footerButtons}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Map')}>
+              <Text style={styles.buttonText}>Ver Mapa de Apoio</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.linkButton} onPress={() => navigation.popToTop()}>
+              <Text style={styles.linkButtonText}>Voltar ao Início</Text>
+            </TouchableOpacity>
+          </View>
+        }
+        contentContainerStyle={styles.listContent}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 32, fontWeight: "bold", color: colors.headline, textAlign: "center", marginBottom: 16 },
-  subtitle: { fontSize: 18, color: colors.paragraph, textAlign: "center", lineHeight: 26, marginBottom: 24 },
-  recommendation: { fontSize: 16, fontStyle: "italic", color: colors.paragraph, textAlign: "center", marginBottom: 40 },
-  button: {
-    backgroundColor: colors.button,
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    width: "100%",
-    alignItems: "center",
+  listContent: { paddingHorizontal: 20, paddingVertical: 10 },
+  title: {
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 28,
+    color: colors.primary,
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 8
   },
-  buttonText: { color: colors.buttonText, fontSize: 18, fontWeight: "bold" },
-  secondaryButton: { backgroundColor: "transparent", borderWidth: 2, borderColor: colors.button, marginTop: 15 },
-  secondaryButtonText: { color: colors.button },
+  subtitle: {
+    fontFamily: typography.fontFamilyRegular,
+    fontSize: 16,
+    color: colors.secondary,
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 24
+  },
+  footerButtons: { marginTop: 20, marginBottom: 40 },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 18,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  buttonText: { fontFamily: typography.fontFamilyBold, color: colors.white, fontSize: 18 },
+  linkButton: { alignItems: 'center' },
+  linkButtonText: { fontFamily: typography.fontFamilyBold, color: colors.secondary, fontSize: 16 }
 });
 
 export default ResultsScreen;

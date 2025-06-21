@@ -1,8 +1,16 @@
-import "react-native-gesture-handler";
-import React from "react";
-import AppNavigator from "./src/navigation/AppNavigator";
+import 'react-native-gesture-handler';
+import React from 'react';
+import { useFonts, Montserrat_600SemiBold } from '@expo-google-fonts/montserrat';
+import { WorkSans_400Regular } from '@expo-google-fonts/work-sans';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
-  // O App.tsx só tem a responsabilidade de carregar o navegador principal.
+  let [fontsLoaded] = useFonts({
+    Montserrat_600SemiBold,
+    WorkSans_400Regular
+  });
+  if (!fontsLoaded) {
+    return null;
+  }
   return <AppNavigator />;
 }
